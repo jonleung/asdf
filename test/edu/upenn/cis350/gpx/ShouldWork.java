@@ -11,16 +11,21 @@ import org.junit.Test;
 
 public class ShouldWork {
 
+	Date aDate;
+	GPXtrkpt p;
+	
 	private GPXtrk _trk_1;
 	private GPXtrk _trk_12;
 	private GPXtrk _trk_3;
 	
+	ArrayList<GPXtrkpt> pts3;
 	ArrayList<GPXtrkseg> segs_23;
+
 	
 	@Before
 	public void setUp() throws Exception {
-		
-		Date aDate = new Date(1000);
+		aDate = new Date(1000);
+		p = new GPXtrkpt(47.040106664,-45, aDate);
 		
 		ArrayList<GPXtrkpt> pts1 = new ArrayList<GPXtrkpt>();
 		pts1.add(new GPXtrkpt(10, 1, aDate));
@@ -34,7 +39,7 @@ public class ShouldWork {
 		pts2.add(new GPXtrkpt(3, 10, aDate));
 		pts2.add(new GPXtrkpt(4, 10, aDate));
 		
-		ArrayList<GPXtrkpt> pts3 = new ArrayList<GPXtrkpt>();
+		pts3 = new ArrayList<GPXtrkpt>();
 		pts3.add(new GPXtrkpt(47.040106664,-45, aDate));
 		pts3.add(new GPXtrkpt(36.5978702,111.09375, aDate));
 		pts3.add(new GPXtrkpt(25.79988833,90.703125, aDate));
@@ -163,6 +168,155 @@ public class ShouldWork {
 		assertEquals(3496.04738184403, GPXcalculator.calculateDistanceTraveled(_trk_3), 100.0);
 	}
 	
+	/*
+	 * If any GPXtrkseg in the GPXtrk is null, the distance traveled for that GPXtrkseg should be
+considered 0.
+	 */
+	@Test
+	public void testOnlyNullSeg() {
+		GPXtrk trk = new GPXtrk("Name", segs_23);
+		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		segs_23.add(null);
+		
+		trk = new GPXtrk("Name", segs_23);
+		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		assertEquals(initial_distance, final_distance, 0);
+	}
 	
+	/*
+	 * If a GPXtrkseg contains no GPXtrkpt objects, the distance traveled for that GPXtrkseg should
+be considered 0.
+	 */
+	@Test
+	public void testAEmptySegs() {
+		GPXtrk trk = new GPXtrk("Name", segs_23);
+		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		GPXtrkseg seg1 = new GPXtrkseg(null);
+		segs_23.add(seg1);
+		
+		trk = new GPXtrk("Name", segs_23);
+		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		assertEquals(initial_distance, final_distance, 0);
+	}
+	@Test
+	public void testEmptyArrayList() {
+		GPXtrk trk = new GPXtrk("Name", segs_23);
+		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
+		GPXtrkseg seg = new GPXtrkseg(pts);
+		segs_23.add(seg);
+
+		trk = new GPXtrk("Name", segs_23);
+		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		assertEquals(initial_distance, final_distance, 0);		
+	}
+	
+	/*
+	 * If a GPXtrkseg contains only one GPXtrkpt, the distance traveled for that GPXtrkseg should be
+considered 0.
+	 */
+	@Test
+	public void testSinglePointSeg() {
+
+		GPXtrk trk = new GPXtrk("Name", segs_23);
+		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
+		pts.add(p);
+		GPXtrkseg seg = new GPXtrkseg(null);
+		segs_23.add(seg);
+
+		trk = new GPXtrk("Name", segs_23);
+		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		assertEquals(initial_distance, final_distance, 0);	
+	}
+	
+	/*
+	 * If any GPXtrkpt in a GPXtrkseg is null, the distance traveled for that GPXtrkseg should be
+considered 0.
+	 */
+	@Test
+	public void testANullPointInSeg() {
+		GPXtrk trk = new GPXtrk("Name", segs_23);
+		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		pts3.add(null);
+		GPXtrkseg seg = new GPXtrkseg(pts3);
+		segs_23.add(seg);
+
+		trk = new GPXtrk("Name", segs_23);
+		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		
+		assertEquals(initial_distance, final_distance, 0);	
+	}
+	
+	/*
+	 * If any GPXtrkpt in a GPXtrkseg has a latitude that is greater than 90 or less than -90, the
+distance traveled for that GPXtrkseg should be considered 0.
+	 */
+	@Test
+	public void testAOutOfBoundsPointLatPos() {
+		GPXtrkpt a = new GPXtrkpt(90.1, 40, aDate);
+		pts3.add(a);
+		
+		GPXtrkseg seg = new GPXtrkseg(pts3);
+		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
+		segs.add(seg);
+		
+		GPXtrk trk = new GPXtrk("Name", segs);
+		double result = GPXcalculator.calculateDistanceTraveled(trk);
+		assertEquals(0, result, 0);
+	}
+	@Test
+	public void testAOutOfBoundsPointLatNeg() {	
+		GPXtrkpt a = new GPXtrkpt(-90.1, 40, aDate);
+		pts3.add(a);
+		
+		GPXtrkseg seg = new GPXtrkseg(pts3);
+		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
+		segs.add(seg);
+		
+		GPXtrk trk = new GPXtrk("Name", segs);
+		double result = GPXcalculator.calculateDistanceTraveled(trk);
+		assertEquals(0, result, 0);
+	}
+	
+	/*
+	 * If any GPXtrkpt in a GPXtrkseg has a longitude that is greater than 180 or less than -180, the
+distance traveled for that GPXtrkseg should be considered 0.
+	 */
+	@Test
+	public void testAOutOfBoundsPointLonPos() {
+		GPXtrkpt a = new GPXtrkpt(40, 180.1, aDate);
+		pts3.add(a);
+		
+		GPXtrkseg seg = new GPXtrkseg(pts3);
+		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
+		segs.add(seg);
+		
+		GPXtrk trk = new GPXtrk("Name", segs);
+		double result = GPXcalculator.calculateDistanceTraveled(trk);
+		assertEquals(0, result, 0);
+	}
+	@Test
+	public void testAOutOfBoundsPointLonNeg() {	
+		GPXtrkpt a = new GPXtrkpt(40, -180.1, aDate);
+		pts3.add(a);
+		
+		GPXtrkseg seg = new GPXtrkseg(pts3);
+		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
+		segs.add(seg);
+		
+		GPXtrk trk = new GPXtrk("Name", segs);
+		double result = GPXcalculator.calculateDistanceTraveled(trk);
+		assertEquals(0, result, 0);
+	}
 
 }

@@ -18,39 +18,42 @@ public class OutOfContextUnitTests {
 		p2 = new GPXtrkpt(50,50,aDate);
 		aDate = new Date(1000);
 	}
-
-	@After
-	public void tearDown() throws Exception {
-		
-	}
 	
+	/*
+	 * If the GPXtrk object is null, the method should return -1.
+	 */
 	@Test
 	public void testNullGPXtrk() {
 		double result = GPXcalculator.calculateDistanceTraveled(null);
 		assertEquals(-1, result, 0);
 	}
 
+	/*
+	 * If the GPXtrk contains no GPXtrkseg objects, the method should return -1.
+	 */
 	@Test
-	public void testNullNameAndArray() {
+	public void testNullNameAndArrayList() {
 		GPXtrk trk = new GPXtrk(null, null);
 		double result = GPXcalculator.calculateDistanceTraveled(trk);
 		assertEquals(-1, result, 0);
 	}
-	
 	@Test
-	public void testNullArray() {
+	public void testNullArrayList() {
 		GPXtrk trk = new GPXtrk("Name", null);
 		double result = GPXcalculator.calculateDistanceTraveled(trk);
 		assertEquals(-1, result, 0);
 	}
-	
 	@Test
 	public void testEmptyArrayList() {
 		GPXtrk trk = new GPXtrk("Name", new ArrayList<GPXtrkseg>() );
 		double result = GPXcalculator.calculateDistanceTraveled(trk);
 		assertEquals(-1, result, 0);
 	}
-	
+
+	/*
+	 * If any GPXtrkseg in the GPXtrk is null, the distance traveled for that GPXtrkseg should be
+considered 0.
+	 */
 	@Test
 	public void testOnlyNullSeg() {
 		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
@@ -59,24 +62,10 @@ public class OutOfContextUnitTests {
 		double result = GPXcalculator.calculateDistanceTraveled(trk);
 		assertEquals(0, result, 0);
 	}
-	
-	@Test
-	public void testANullSeg() {
-		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
-		pts.add(p1);
-		pts.add(p2);
-		
-		GPXtrkseg seg = new GPXtrkseg(pts);
-		
-		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
-		segs.add(seg);
-		segs.add(null);
-		
-		GPXtrk trk = new GPXtrk("Name", segs);
-		double result = GPXcalculator.calculateDistanceTraveled(trk);
-		assertEquals(0, result, 0);
-	}
-	
+
+	/*
+	 * There should be no distance traveled all segs only have one point.
+	 */
 	public void testTwoIdentitalPoints() {
 		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
 		pts.add(p1);
@@ -92,8 +81,12 @@ public class OutOfContextUnitTests {
 		assertEquals(0, result, 0);
 	}
 	
+	/*
+	 * If a GPXtrkseg contains no GPXtrkpt objects, the distance traveled for that GPXtrkseg should
+be considered 0.
+	 */
 	@Test
-	public void testAEmptySegs() {
+	public void testSegWithNullArrayList() {
 		GPXtrkseg seg1 = new GPXtrkseg(null);
 		GPXtrkseg seg2 = new GPXtrkseg(null);
 		GPXtrkseg seg3 = new GPXtrkseg(null);
@@ -106,7 +99,25 @@ public class OutOfContextUnitTests {
 		double result = GPXcalculator.calculateDistanceTraveled(trk);
 		assertEquals(0, result, 0);
 	}
+	@Test
+	public void testAEmptySegs() {
+		GPXtrkseg seg1 = new GPXtrkseg(new ArrayList<GPXtrkpt>());
+		GPXtrkseg seg2 = new GPXtrkseg(new ArrayList<GPXtrkpt>());
+		GPXtrkseg seg3 = new GPXtrkseg(new ArrayList<GPXtrkpt>());
+		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
+		segs.add(seg1);
+		segs.add(seg2);
+		segs.add(seg3);
+		
+		GPXtrk trk = new GPXtrk("Name", segs);
+		double result = GPXcalculator.calculateDistanceTraveled(trk);
+		assertEquals(0, result, 0);
+	}
 	
+	/*
+	 * If a GPXtrkseg contains only one GPXtrkpt, the distance traveled for that GPXtrkseg should be
+considered 0.
+	 */
 	@Test
 	public void testSinglePointSeg() {
 		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
@@ -121,6 +132,10 @@ public class OutOfContextUnitTests {
 		assertEquals(0, result, 0);
 	}
 	
+	/*
+	 * If any GPXtrkpt in a GPXtrkseg is null, the distance traveled for that GPXtrkseg should be
+considered 0.
+	 */
 	@Test
 	public void testANullPointInSeg() {
 		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
@@ -134,76 +149,4 @@ public class OutOfContextUnitTests {
 		double result = GPXcalculator.calculateDistanceTraveled(trk);
 		assertEquals(0, result, 0);
 	}
-	
-	@Test
-	public void testAOutOfBoundsPointLatPos() {	
-		GPXtrkpt a = new GPXtrkpt(90.1, 40, aDate);
-		
-		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
-		pts.add(a);
-		
-		GPXtrkseg seg = new GPXtrkseg(pts);
-		
-		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
-		segs.add(seg);
-		
-		GPXtrk trk = new GPXtrk("Name", segs);
-		double result = GPXcalculator.calculateDistanceTraveled(trk);
-		assertEquals(0, result, 0);
-	}
-	
-	@Test
-	public void testAOutOfBoundsPointLatNeg() {	
-		GPXtrkpt a = new GPXtrkpt(-90.1, 40, aDate);
-		
-		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
-		pts.add(a);
-		
-		GPXtrkseg seg = new GPXtrkseg(pts);
-		
-		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
-		segs.add(seg);
-		
-		GPXtrk trk = new GPXtrk("Name", segs);
-		double result = GPXcalculator.calculateDistanceTraveled(trk);
-		assertEquals(0, result, 0);
-	}
-	
-	@Test
-	public void testAOutOfBoundsPointLonPos() {	
-		GPXtrkpt a = new GPXtrkpt(40, 180.1, aDate);
-		
-		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
-		pts.add(a);
-		
-		GPXtrkseg seg = new GPXtrkseg(pts);
-		
-		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
-		segs.add(seg);
-		
-		GPXtrk trk = new GPXtrk("Name", segs);
-		double result = GPXcalculator.calculateDistanceTraveled(trk);
-		assertEquals(0, result, 0);
-	}
-	
-	@Test
-	public void testAOutOfBoundsPointLonNeg() {	
-		GPXtrkpt a = new GPXtrkpt(40, -180.1, aDate);
-		
-		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
-		pts.add(a);
-		
-		GPXtrkseg seg = new GPXtrkseg(pts);
-		
-		ArrayList<GPXtrkseg> segs = new ArrayList<GPXtrkseg>();
-		segs.add(seg);
-		
-		GPXtrk trk = new GPXtrk("Name", segs);
-		double result = GPXcalculator.calculateDistanceTraveled(trk);
-		assertEquals(0, result, 0);
-	}
-	
-	
-	
-
 }
