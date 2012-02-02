@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.After;
 import org.junit.Test;
 
-public class ShouldWork {
+public class InContextUnitTests {
 
 	Date aDate;
 	GPXtrkpt p;
@@ -18,16 +18,16 @@ public class ShouldWork {
 	private GPXtrk _trk_12;
 	private GPXtrk _trk_3;
 	
+	ArrayList<GPXtrkpt> pts1;
 	ArrayList<GPXtrkpt> pts3;
-	ArrayList<GPXtrkseg> segs_23;
-
+	ArrayList<GPXtrkseg> segs_1;
 	
 	@Before
 	public void setUp() throws Exception {
 		aDate = new Date(1000);
 		p = new GPXtrkpt(47.040106664,-45, aDate);
 		
-		ArrayList<GPXtrkpt> pts1 = new ArrayList<GPXtrkpt>();
+		pts1 = new ArrayList<GPXtrkpt>();
 		pts1.add(new GPXtrkpt(10, 1, aDate));
 		pts1.add(new GPXtrkpt(10, 2, aDate));
 		pts1.add(new GPXtrkpt(10, 3, aDate));
@@ -80,7 +80,7 @@ public class ShouldWork {
 		GPXtrkseg seg2 = new GPXtrkseg(pts2);
 		GPXtrkseg seg3 = new GPXtrkseg(pts3);
 		
-		ArrayList<GPXtrkseg> segs_1 = new ArrayList<GPXtrkseg>();
+		segs_1 = new ArrayList<GPXtrkseg>();
 		segs_1.add(seg1);
 		
 		ArrayList<GPXtrkseg> segs_12 = new ArrayList<GPXtrkseg>();
@@ -90,7 +90,7 @@ public class ShouldWork {
 		ArrayList<GPXtrkseg> segs_3 = new ArrayList<GPXtrkseg>();
 		segs_3.add(seg3);
 		
-		segs_23 = new ArrayList<GPXtrkseg>();
+		ArrayList<GPXtrkseg> segs_23 = new ArrayList<GPXtrkseg>();
 		segs_23.add(seg2);
 		segs_23.add(seg3);
 				
@@ -111,6 +111,13 @@ public class ShouldWork {
 		assertEquals(6, dist, 0);
 	}
 	
+	/*
+	 * Testing to see how accurate the distance calculation is
+	 */
+	@Test
+	public void testTrk_3_00() {
+		assertEquals(3496.04738184403, GPXcalculator.calculateDistanceTraveled(_trk_3), 0);
+	}
 	@Test
 	public void testTrk_3_11() {
 		assertEquals(3496.04738184403, GPXcalculator.calculateDistanceTraveled(_trk_3), 0.00000000001);
@@ -174,15 +181,12 @@ considered 0.
 	 */
 	@Test
 	public void testOnlyNullSeg() {
-		GPXtrk trk = new GPXtrk("Name", segs_23);
-		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
+		segs_1.add(null);
 		
-		segs_23.add(null);
-		
-		trk = new GPXtrk("Name", segs_23);
+		GPXtrk trk = new GPXtrk("Name", segs_1);
 		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
 		
-		assertEquals(initial_distance, final_distance, 0);
+		assertEquals(3, final_distance, 0);
 	}
 	
 	/*
@@ -191,30 +195,25 @@ be considered 0.
 	 */
 	@Test
 	public void testAEmptySegs() {
-		GPXtrk trk = new GPXtrk("Name", segs_23);
-		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
 		
 		GPXtrkseg seg1 = new GPXtrkseg(null);
-		segs_23.add(seg1);
+		segs_1.add(seg1);
 		
-		trk = new GPXtrk("Name", segs_23);
+		GPXtrk trk = new GPXtrk("Name", segs_1);
 		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
 		
-		assertEquals(initial_distance, final_distance, 0);
-	}
+		assertEquals(3, final_distance, 0);	}
 	@Test
 	public void testEmptyArrayList() {
-		GPXtrk trk = new GPXtrk("Name", segs_23);
-		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
 		
 		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
 		GPXtrkseg seg = new GPXtrkseg(pts);
-		segs_23.add(seg);
+		segs_1.add(seg);
 
-		trk = new GPXtrk("Name", segs_23);
+		GPXtrk trk = new GPXtrk("Name", segs_1);
 		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
 		
-		assertEquals(initial_distance, final_distance, 0);		
+		assertEquals(3, final_distance, 0);
 	}
 	
 	/*
@@ -222,20 +221,16 @@ be considered 0.
 considered 0.
 	 */
 	@Test
-	public void testSinglePointSeg() {
-
-		GPXtrk trk = new GPXtrk("Name", segs_23);
-		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
-		
+	public void testSinglePointSeg() {		
 		ArrayList<GPXtrkpt> pts = new ArrayList<GPXtrkpt>();
 		pts.add(p);
 		GPXtrkseg seg = new GPXtrkseg(null);
-		segs_23.add(seg);
+		segs_1.add(seg);
 
-		trk = new GPXtrk("Name", segs_23);
+		GPXtrk trk = new GPXtrk("Name", segs_1);
 		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
 		
-		assertEquals(initial_distance, final_distance, 0);	
+		assertEquals(3, final_distance, 0);
 	}
 	
 	/*
@@ -243,18 +238,15 @@ considered 0.
 considered 0.
 	 */
 	@Test
-	public void testANullPointInSeg() {
-		GPXtrk trk = new GPXtrk("Name", segs_23);
-		double initial_distance = GPXcalculator.calculateDistanceTraveled(trk);
-		
-		pts3.add(null);
-		GPXtrkseg seg = new GPXtrkseg(pts3);
-		segs_23.add(seg);
+	public void testANullPointInSeg() {		
+		pts1.add(null);
+		GPXtrkseg seg = new GPXtrkseg(pts1);
+		segs_1.add(seg);
 
-		trk = new GPXtrk("Name", segs_23);
+		GPXtrk trk = new GPXtrk("Name", segs_1);
 		double final_distance = GPXcalculator.calculateDistanceTraveled(trk);
 		
-		assertEquals(initial_distance, final_distance, 0);	
+		assertEquals(3, final_distance, 0);
 	}
 	
 	/*
